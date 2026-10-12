@@ -1,0 +1,1970 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>WiFi Share</title>
+  <style>
+    :root {
+      --bg: #09090b;
+      --surface: #121215;
+      --surface-elevated: #18181b;
+      --surface-hover: #222227;
+      --border: #27272a;
+      --border-subtle: #1e1e24;
+      --text: #fafafa;
+      --text-muted: #a1a1aa;
+      --text-dim: #71717a;
+      --emerald: #10b981;
+      --emerald-dark: #064e3b;
+      --emerald-darker: #022c22;
+      --emerald-light: #34d399;
+      --emerald-border: #047857;
+      --danger: #ef4444;
+      --danger-surface: #450a0a;
+      --danger-border: #7f1d1d;
+      --radius: 12px;
+      --radius-sm: 8px;
+      --radius-xs: 4px;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+
+    [data-theme="light"] {
+      --bg: #ffffff;
+      --surface: #f4f4f5;
+      --surface-elevated: #e4e4e7;
+      --surface-hover: #d4d4d8;
+      --border: #e4e4e7;
+      --border-subtle: #f4f4f5;
+      --text: #09090b;
+      --text-muted: #52525b;
+      --text-dim: #a1a1aa;
+      --emerald: #059669;
+      --emerald-dark: #ecfdf5;
+      --emerald-darker: #d1fae5;
+      --emerald-light: #10b981;
+      --emerald-border: #10b981;
+      --danger: #dc2626;
+      --danger-surface: #fef2f2;
+      --danger-border: #fecaca;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 12px 12px 90px;
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    .app-shell {
+      width: 100%;
+      max-width: 860px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* Icon Helper */
+    .icon {
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+      flex-shrink: 0;
+    }
+    .icon-sm { width: 14px; height: 14px; }
+    .icon-lg { width: 24px; height: 24px; }
+
+    /* Top System Bar */
+    .system-strip {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 6px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+    .system-strip-left, .system-strip-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .pulse-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--emerald);
+      display: inline-block;
+    }
+    .pulse-dot.offline { background: var(--danger); }
+    .storage-meter {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .storage-track {
+      width: 60px;
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .storage-fill {
+      height: 100%;
+      background: var(--emerald);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    /* Header */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 0;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brand-mark {
+      width: 32px;
+      height: 32px;
+      background: var(--emerald-dark);
+      border: 1px solid var(--emerald-border);
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--emerald-light);
+    }
+    .brand-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      background: var(--surface-elevated);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 8px 12px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      user-select: none;
+      text-decoration: none;
+    }
+    .btn:hover {
+      background: var(--surface-hover);
+      border-color: var(--text-dim);
+    }
+    .btn:active {
+      transform: scale(0.98);
+    }
+    .btn-emerald {
+      background: var(--emerald-dark);
+      color: var(--emerald-light);
+      border-color: var(--emerald-border);
+    }
+    .btn-emerald:hover {
+      background: var(--emerald);
+      color: #ffffff;
+      border-color: var(--emerald);
+    }
+    .btn-danger {
+      background: var(--danger-surface);
+      color: var(--danger);
+      border-color: var(--danger-border);
+    }
+    .btn-danger:hover {
+      background: var(--danger);
+      color: #ffffff;
+    }
+    .btn-icon {
+      padding: 8px;
+      width: 34px;
+      height: 34px;
+    }
+
+    /* Upload Card */
+    .upload-card {
+      background: var(--surface);
+      border: 1px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 24px 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    .upload-card:hover, .upload-card.dragover {
+      border-color: var(--emerald);
+      background: var(--emerald-darker);
+    }
+    .upload-icon-wrap {
+      width: 44px;
+      height: 44px;
+      border-radius: var(--radius-sm);
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--emerald-light);
+      margin-bottom: 4px;
+    }
+    .upload-title {
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+    .upload-sub {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    /* Progress Box */
+    .progress-box {
+      display: none;
+      background: var(--surface);
+      border: 1px solid var(--emerald-border);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      margin-top: 4px;
+    }
+    .progress-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      margin-bottom: 6px;
+    }
+    .progress-track {
+      height: 6px;
+      background: var(--surface-elevated);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: var(--emerald);
+      width: 0%;
+      transition: width 0.1s linear;
+    }
+    .progress-speed-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      margin-top: 6px;
+    }
+
+    /* Clipboard Section */
+    .clipboard-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .clipboard-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .clipboard-title {
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .clipboard-input-wrap {
+      display: flex;
+      gap: 8px;
+    }
+    .clipboard-input {
+      flex: 1;
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 0.85rem;
+      outline: none;
+    }
+    .clipboard-input:focus {
+      border-color: var(--emerald-border);
+    }
+
+    /* Controls Strip */
+    .controls-strip {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 4px;
+    }
+    .filter-chips {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      padding-bottom: 2px;
+    }
+    .filter-chips::-webkit-scrollbar { display: none; }
+    .chip {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 5px 12px;
+      border-radius: 99px;
+      font-size: 0.78rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+    }
+    .chip:hover {
+      background: var(--surface-hover);
+      color: var(--text);
+    }
+    .chip.active {
+      background: var(--emerald-dark);
+      border-color: var(--emerald-border);
+      color: var(--emerald-light);
+      font-weight: 600;
+    }
+    .chip-badge {
+      font-size: 0.7rem;
+      background: var(--surface-elevated);
+      padding: 1px 6px;
+      border-radius: 99px;
+    }
+    .chip.active .chip-badge {
+      background: var(--emerald);
+      color: #ffffff;
+    }
+
+    .toolbar-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+    .search-box {
+      flex: 1;
+      position: relative;
+    }
+    .search-box .icon {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-dim);
+    }
+    .search-input {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 7px 10px 7px 32px;
+      border-radius: var(--radius-sm);
+      font-size: 0.85rem;
+      outline: none;
+    }
+    .search-input:focus {
+      border-color: var(--emerald-border);
+    }
+
+    .view-switcher {
+      display: flex;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 2px;
+    }
+    .view-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-dim);
+      padding: 5px 8px;
+      border-radius: var(--radius-xs);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s ease;
+    }
+    .view-btn.active {
+      background: var(--surface-elevated);
+      color: var(--emerald-light);
+    }
+
+    /* Container */
+    .files-container {
+      margin-top: 4px;
+      min-height: 120px;
+    }
+
+    /* MODE 1: Feed View */
+    .view-feed {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .feed-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .feed-card.selected {
+      border-color: var(--emerald);
+      background: var(--emerald-darker);
+    }
+    .feed-media-wrap {
+      width: 100%;
+      max-height: 440px;
+      background: #000000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+    .feed-media-wrap img {
+      width: 100%;
+      height: auto;
+      max-height: 440px;
+      object-fit: contain;
+      display: block;
+    }
+    .feed-media-wrap video {
+      width: 100%;
+      max-height: 440px;
+      background: #000000;
+    }
+    .feed-placeholder {
+      padding: 44px 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      color: var(--text-dim);
+      cursor: pointer;
+    }
+    .feed-info-bar {
+      padding: 12px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+    }
+    .feed-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      overflow: hidden;
+      flex: 1;
+      cursor: pointer;
+    }
+    .file-name {
+      font-size: 0.92rem;
+      font-weight: 600;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .file-subtext {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      display: flex;
+      gap: 8px;
+    }
+    .card-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* MODE 2: Grid View */
+    .view-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 10px;
+    }
+    .grid-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      transition: border-color 0.15s ease;
+    }
+    .grid-card.selected {
+      border-color: var(--emerald);
+    }
+    .grid-thumb-wrap {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      background: #000000;
+      position: relative;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .grid-thumb-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .grid-info {
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      background: var(--surface);
+    }
+    .grid-name {
+      font-size: 0.78rem;
+      font-weight: 500;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .grid-meta {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+    .grid-action-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 4px;
+    }
+
+    /* MODE 3: List View */
+    .view-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .list-row {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      transition: background 0.15s ease;
+    }
+    .list-row.selected {
+      border-color: var(--emerald);
+      background: var(--emerald-darker);
+    }
+    .list-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+      overflow: hidden;
+    }
+    .list-thumb {
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius-xs);
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      overflow: hidden;
+      color: var(--text-dim);
+      cursor: pointer;
+    }
+    .list-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* Checkbox */
+    .custom-check {
+      width: 18px;
+      height: 18px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xs);
+      background: var(--surface-elevated);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: transparent;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: all 0.12s ease;
+    }
+    .custom-check.checked {
+      background: var(--emerald);
+      border-color: var(--emerald);
+      color: #ffffff;
+    }
+
+    /* Floating Batch Bar */
+    .batch-bar {
+      position: fixed;
+      bottom: 18px;
+      left: 50%;
+      transform: translateX(-50%) translateY(120px);
+      background: var(--surface-elevated);
+      border: 1px solid var(--emerald-border);
+      border-radius: 99px;
+      padding: 8px 18px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      z-index: 90;
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .batch-bar.show {
+      transform: translateX(-50%) translateY(0);
+    }
+    .batch-counter {
+      font-size: 0.85rem;
+      font-weight: 600;
+      font-family: var(--font-mono);
+      color: var(--emerald-light);
+    }
+
+    .lock-gate {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      transition: opacity 0.2s ease;
+    }
+    .lock-gate.unlocked {
+      display: none !important;
+    }
+    .lock-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 32px 24px;
+      width: 100%;
+      max-width: 360px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 16px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+    }
+    .lock-icon-wrap {
+      width: 52px;
+      height: 52px;
+      border-radius: var(--radius-sm);
+      background: var(--emerald-dark);
+      border: 1px solid var(--emerald-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--emerald-light);
+    }
+    .lock-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .lock-sub {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+    .pin-input-field {
+      width: 100%;
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 1.8rem;
+      letter-spacing: 0.8rem;
+      text-align: center;
+      padding: 12px 8px;
+      border-radius: var(--radius-sm);
+      outline: none;
+      transition: border-color 0.15s ease;
+    }
+    .pin-input-field:focus {
+      border-color: var(--emerald);
+    }
+    .pin-input-field.shake {
+      animation: shake 0.35s ease;
+      border-color: var(--danger);
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-8px); }
+      40%, 80% { transform: translateX(8px); }
+    }
+    .lock-error {
+      color: var(--danger);
+      font-size: 0.78rem;
+      min-height: 16px;
+    }
+
+    /* Lightbox Modal */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.88);
+      backdrop-filter: blur(8px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: 16px;
+    }
+    .lightbox-modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      width: 100%;
+      max-width: 780px;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .lightbox-head {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .lightbox-body {
+      flex: 1;
+      overflow: auto;
+      background: #000000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 240px;
+      max-height: calc(90vh - 120px);
+    }
+    .lightbox-body img {
+      max-width: 100%;
+      max-height: calc(90vh - 120px);
+      object-fit: contain;
+    }
+    .lightbox-body video {
+      max-width: 100%;
+      max-height: calc(90vh - 120px);
+      width: 100%;
+    }
+    .lightbox-text {
+      width: 100%;
+      height: 100%;
+      padding: 16px;
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      white-space: pre-wrap;
+      overflow: auto;
+      background: var(--surface);
+    }
+    .lightbox-foot {
+      padding: 10px 16px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--surface);
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--surface-elevated);
+      color: var(--text);
+      border: 1px solid var(--emerald-border);
+      padding: 10px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 0.82rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transform: translateY(120px);
+      opacity: 0;
+      transition: all 0.2s ease;
+      z-index: 120;
+    }
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .empty-state {
+      padding: 48px 16px;
+      text-align: center;
+      color: var(--text-dim);
+      font-size: 0.88rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Fullscreen Security Lock Gate -->
+  <div class="lock-gate" id="lock-gate">
+    <div class="lock-card">
+      <div class="lock-icon-wrap">
+        <svg class="icon icon-lg" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      </div>
+      <div>
+        <div class="lock-title">WiFi Share Protected</div>
+        <div class="lock-sub">Enter the 4-digit PIN to unlock files and clipboard</div>
+      </div>
+      <form id="lock-form" style="width: 100%; display: flex; flex-direction: column; gap: 12px;">
+        <input type="password" id="gate-pin-input" class="pin-input-field" maxlength="4" inputmode="numeric" placeholder="••••" autocomplete="off" autofocus>
+        <div class="lock-error" id="lock-error"></div>
+        <button class="btn btn-emerald" type="submit" id="unlock-submit-btn" style="padding: 12px; font-weight: 600;">
+          Unlock System
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div class="app-shell">
+    <!-- Top System Strip -->
+    <div class="system-strip">
+      <div class="system-strip-left">
+        <span style="display:flex; align-items:center; gap:6px;">
+          <span class="pulse-dot" id="ws-indicator"></span>
+          <span id="ws-status-text">LAN ONLINE</span>
+        </span>
+      </div>
+      <div class="system-strip-right">
+        <div class="storage-meter" id="storage-container">
+          <svg class="icon icon-sm" viewBox="0 0 24 24"><rect width="20" height="8" x="2" y="2" rx="2"/><rect width="20" height="8" x="2" y="14" rx="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/></svg>
+          <div class="storage-track"><div class="storage-fill" id="storage-fill"></div></div>
+          <span id="storage-text">Disk storage</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Header -->
+    <header>
+      <div class="brand">
+        <div class="brand-mark">
+          <svg class="icon" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </div>
+        <div>
+          <div class="brand-title">WiFi Share</div>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-icon" id="theme-btn" title="Toggle Theme">
+          <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+        </button>
+        <button class="btn btn-icon" id="lock-btn" title="Lock System">
+          <svg class="icon" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Upload Card -->
+    <div class="upload-card" id="dropzone">
+      <div class="upload-icon-wrap">
+        <svg class="icon icon-lg" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+      </div>
+      <div class="upload-title">Drop files here or tap to select</div>
+      <div class="upload-sub">Direct 1MB async streaming to Ubuntu with zero memory bloat</div>
+      <button class="btn btn-emerald" type="button" style="margin-top:4px; pointer-events:none;">Select Files</button>
+      <input type="file" id="file-input" multiple style="display: none;">
+    </div>
+
+    <!-- Live Upload Progress -->
+    <div class="progress-box" id="upload-progress-box">
+      <div class="progress-meta">
+        <span id="upload-filename" style="font-weight: 600; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; max-width: 70%;">Uploading...</span>
+        <span id="upload-percentage" style="font-weight: 700; color: var(--emerald-light); font-family: var(--font-mono);">0%</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="upload-progress-fill"></div>
+      </div>
+      <div class="progress-speed-row">
+        <span id="upload-transferred">0 MB / 0 MB</span>
+        <span id="upload-speed" style="color: var(--emerald-light);">0.0 MB/s</span>
+      </div>
+    </div>
+
+    <!-- Shared Clipboard Section -->
+    <div class="clipboard-section">
+      <div class="clipboard-header">
+        <span class="clipboard-title">
+          <svg class="icon icon-sm" viewBox="0 0 24 24"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>
+          Shared Clipboard
+        </span>
+        <button class="btn" style="padding: 3px 8px; font-size: 0.75rem;" id="copy-clipboard-btn">
+          <svg class="icon icon-sm" viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+          Copy to Mobile
+        </button>
+      </div>
+      <div class="clipboard-input-wrap">
+        <input type="text" class="clipboard-input" id="clipboard-input" placeholder="Type or paste to sync bidirectionally with Ubuntu...">
+        <button class="btn btn-emerald" id="send-clipboard-btn">
+          <svg class="icon icon-sm" viewBox="0 0 24 24"><line x1="22" x2="11" y1="2" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          Send
+        </button>
+      </div>
+    </div>
+
+    <!-- Controls: Filter Chips & View Mode Switcher -->
+    <div class="controls-strip">
+      <div class="filter-chips" id="filter-chips">
+        <div class="chip active" data-cat="all">All <span class="chip-badge" id="badge-all">0</span></div>
+        <div class="chip" data-cat="image">Images <span class="chip-badge" id="badge-image">0</span></div>
+        <div class="chip" data-cat="video">Videos <span class="chip-badge" id="badge-video">0</span></div>
+        <div class="chip" data-cat="audio">Audio <span class="chip-badge" id="badge-audio">0</span></div>
+        <div class="chip" data-cat="document">Documents <span class="chip-badge" id="badge-document">0</span></div>
+        <div class="chip" data-cat="archive">Archives <span class="chip-badge" id="badge-archive">0</span></div>
+      </div>
+
+      <div class="toolbar-row">
+        <div class="search-box">
+          <svg class="icon icon-sm" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" x2="16.65"/></svg>
+          <input type="text" class="search-input" id="search-input" placeholder="Filter files...">
+        </div>
+
+        <div style="display:flex; align-items:center; gap:6px;">
+          <button class="btn btn-icon" id="select-all-btn" title="Toggle Select All">
+            <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="m9 11 3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          </button>
+
+          <div class="view-switcher">
+            <button class="view-btn" id="view-feed-btn" title="1 Big Column (Feed)">
+              <svg class="icon icon-sm" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/></svg>
+            </button>
+            <button class="view-btn" id="view-grid-btn" title="Small Columns (Grid)">
+              <svg class="icon icon-sm" viewBox="0 0 24 24"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>
+            </button>
+            <button class="view-btn" id="view-list-btn" title="Dense List">
+              <svg class="icon icon-sm" viewBox="0 0 24 24"><line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/><line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Files Container -->
+    <div class="files-container" id="files-container">
+      <div class="empty-state">Loading files...</div>
+    </div>
+  </div>
+
+  <!-- Floating Batch Action Bar -->
+  <div class="batch-bar" id="batch-bar">
+    <span class="batch-counter" id="batch-counter">0 selected</span>
+    <button class="btn btn-emerald" id="batch-download-btn">
+      <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+      Download ZIP
+    </button>
+    <button class="btn btn-danger" id="batch-delete-btn">
+      <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+      Delete
+    </button>
+    <button class="btn btn-icon" id="batch-clear-btn" title="Cancel">
+      <svg class="icon icon-sm" viewBox="0 0 24 24"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>
+    </button>
+  </div>
+
+  <!-- Lightbox Modal -->
+  <div class="modal-backdrop" id="lightbox-modal">
+    <div class="lightbox-modal">
+      <div class="lightbox-head">
+        <span id="lightbox-title" style="font-weight: 600; font-size: 0.95rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:80%;">Preview</span>
+        <button class="btn btn-icon" id="lightbox-close-btn">
+          <svg class="icon" viewBox="0 0 24 24"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="lightbox-body" id="lightbox-body"></div>
+      <div class="lightbox-foot">
+        <span id="lightbox-meta" style="font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono);">--</span>
+        <div style="display:flex; gap:8px;">
+          <a class="btn btn-emerald" id="lightbox-download-link" href="#" download>
+            <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+            Download
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast">
+    <svg class="icon icon-sm" viewBox="0 0 24 24" style="color:var(--emerald-light);"><polyline points="20 6 9 17 4 12"/></svg>
+    <span id="toast-text">Notification</span>
+  </div>
+
+  <script>
+    // ==========================================
+    // 1. STATE & REFERENCES
+    // ==========================================
+    let allFiles = [];
+    let selectedFilenames = new Set();
+    let currentCategory = 'all';
+    let currentViewMode = localStorage.getItem('wifishare_view') || 'feed';
+    let authPin = '';
+    let isUploading = false;
+    let isAuthenticated = false;
+    let isVerifying = false;
+
+    // DOM References
+    const lockGate = document.getElementById('lock-gate');
+    const lockForm = document.getElementById('lock-form');
+    const gatePinInput = document.getElementById('gate-pin-input');
+    const lockError = document.getElementById('lock-error');
+    const unlockSubmitBtn = document.getElementById('unlock-submit-btn');
+    const lockBtn = document.getElementById('lock-btn');
+    const themeBtn = document.getElementById('theme-btn');
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('file-input');
+    const uploadProgressBox = document.getElementById('upload-progress-box');
+    const uploadFilename = document.getElementById('upload-filename');
+    const uploadPercentage = document.getElementById('upload-percentage');
+    const uploadProgressFill = document.getElementById('upload-progress-fill');
+    const uploadTransferred = document.getElementById('upload-transferred');
+    const uploadSpeed = document.getElementById('upload-speed');
+    const clipboardInput = document.getElementById('clipboard-input');
+    const sendClipboardBtn = document.getElementById('send-clipboard-btn');
+    const copyClipboardBtn = document.getElementById('copy-clipboard-btn');
+    const filterChips = document.getElementById('filter-chips');
+    const searchInput = document.getElementById('search-input');
+    const selectAllBtn = document.getElementById('select-all-btn');
+    const viewFeedBtn = document.getElementById('view-feed-btn');
+    const viewGridBtn = document.getElementById('view-grid-btn');
+    const viewListBtn = document.getElementById('view-list-btn');
+    const filesContainer = document.getElementById('files-container');
+    const batchBar = document.getElementById('batch-bar');
+    const batchCounter = document.getElementById('batch-counter');
+    const batchClearBtn = document.getElementById('batch-clear-btn');
+    const batchDeleteBtn = document.getElementById('batch-delete-btn');
+    const batchDownloadBtn = document.getElementById('batch-download-btn');
+    const lightboxModal = document.getElementById('lightbox-modal');
+    const lightboxBody = document.getElementById('lightbox-body');
+    const lightboxTitle = document.getElementById('lightbox-title');
+    const lightboxMeta = document.getElementById('lightbox-meta');
+    const lightboxDownloadLink = document.getElementById('lightbox-download-link');
+    const lightboxCloseBtn = document.getElementById('lightbox-close-btn');
+    const wsIndicator = document.getElementById('ws-indicator');
+    const wsStatusText = document.getElementById('ws-status-text');
+    const storageFill = document.getElementById('storage-fill');
+    const storageText = document.getElementById('storage-text');
+    const toast = document.getElementById('toast');
+    const toastText = document.getElementById('toast-text');
+
+    // ==========================================
+    // 2. PIN AUTHENTICATION GATE
+    // ==========================================
+    async function verifyAndUnlock(pinToTest) {
+      if (!pinToTest || isVerifying) return false;
+      isVerifying = true;
+      lockError.textContent = '';
+      if (unlockSubmitBtn) unlockSubmitBtn.disabled = true;
+
+      try {
+        const res = await fetch('/auth/verify', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ pin: pinToTest }),
+        });
+
+        if (res.status === 429) {
+          const data = await res.json().catch(() => ({}));
+          showPinError(data.detail || 'Too many attempts. Locked out for 60s.');
+          isVerifying = false;
+          if (unlockSubmitBtn) unlockSubmitBtn.disabled = false;
+          return false;
+        }
+
+        if (res.ok) {
+          authPin = pinToTest;
+          document.cookie = `wifi_share_pin=${encodeURIComponent(authPin)}; path=/; SameSite=Lax`;
+          isAuthenticated = true;
+          lockGate.classList.add('unlocked');
+          lockError.textContent = '';
+          gatePinInput.value = '';
+
+          // Initialize app after unlocking
+          setViewMode(currentViewMode);
+          fetchFiles();
+          fetchClipboard();
+          connectWebSocket();
+          isVerifying = false;
+          if (unlockSubmitBtn) unlockSubmitBtn.disabled = false;
+          return true;
+        } else {
+          showPinError('Incorrect PIN');
+          isVerifying = false;
+          if (unlockSubmitBtn) unlockSubmitBtn.disabled = false;
+          return false;
+        }
+      } catch (e) {
+        showPinError('Cannot reach server. Check Wi-Fi connection.');
+        isVerifying = false;
+        if (unlockSubmitBtn) unlockSubmitBtn.disabled = false;
+        return false;
+      }
+    }
+
+    function showPinError(msg) {
+      lockError.textContent = msg;
+      gatePinInput.classList.add('shake');
+      setTimeout(() => gatePinInput.classList.remove('shake'), 400);
+      gatePinInput.value = '';
+      gatePinInput.focus();
+    }
+
+    lockForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const val = gatePinInput.value.trim();
+      verifyAndUnlock(val, false);
+    });
+
+    gatePinInput.addEventListener('input', () => {
+      if (gatePinInput.value.length === 4) {
+        verifyAndUnlock(gatePinInput.value.trim(), false);
+      }
+    });
+
+    function lockSession() {
+      isAuthenticated = false;
+      authPin = '';
+      localStorage.removeItem('wifi_share_pin');
+      document.cookie = 'wifi_share_pin=; Max-Age=0; path=/';
+      if (ws) {
+        try { ws.close(); } catch (e) {}
+      }
+      filesContainer.innerHTML = '';
+      allFiles = [];
+      selectedFilenames.clear();
+      updateBatchBar();
+      lockGate.classList.remove('unlocked');
+      gatePinInput.value = '';
+      lockError.textContent = '';
+      gatePinInput.focus();
+    }
+
+    lockBtn.addEventListener('click', lockSession);
+
+    // ==========================================
+    // 3. UTILITY FUNCTIONS
+    // ==========================================
+    let toastTimer;
+    function showToast(msg) {
+      toastText.textContent = msg;
+      toast.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove('show'), 2600);
+    }
+
+    function getHeaders(extra = {}) {
+      const h = { ...extra };
+      if (authPin) h['X-Auth-Pin'] = authPin;
+      return h;
+    }
+
+    function getMediaUrl(endpoint, filename) {
+      const encoded = encodeURIComponent(filename);
+      const pinParam = authPin ? `?pin=${encodeURIComponent(authPin)}` : '';
+      return `${endpoint}/${encoded}${pinParam}`;
+    }
+
+    function formatBytes(bytes) {
+      if (!bytes || bytes === 0) return '0 B';
+      const k = 1024;
+      const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+    }
+
+    function formatDate(isoStr) {
+      if (!isoStr) return '';
+      const d = new Date(isoStr);
+      return d.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' ' +
+             d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+    }
+
+    function getFileCategory(file) {
+      if (file.category) return file.category;
+      const ext = (file.name.split('.').pop() || '').toLowerCase();
+      if (['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg', 'bmp'].includes(ext)) return 'image';
+      if (['mp4', 'webm', 'mov', 'mkv', 'avi'].includes(ext)) return 'video';
+      if (['mp3', 'wav', 'flac', 'm4a', 'ogg', 'aac'].includes(ext)) return 'audio';
+      if (['zip', 'tar', 'gz', '7z', 'rar', 'bz2', 'tgz'].includes(ext)) return 'archive';
+      if (['pdf', 'txt', 'md', 'doc', 'docx', 'csv', 'json', 'py', 'js', 'html', 'css', 'sh'].includes(ext)) return 'document';
+      return 'other';
+    }
+
+    function getCategoryIconSvg(cat) {
+      if (cat === 'image') return `<svg class="icon" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>`;
+      if (cat === 'video') return `<svg class="icon" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="m9 8 7 4-7 4Z"/></svg>`;
+      if (cat === 'audio') return `<svg class="icon" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>`;
+      if (cat === 'archive') return `<svg class="icon" viewBox="0 0 24 24"><polyline points="21 8 21 21 3 21 3 8"/><rect width="22" height="5" x="1" y="3"/><line x1="10" x2="14" y1="12" y2="12"/></svg>`;
+      return `<svg class="icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/></svg>`;
+    }
+
+    // ==========================================
+    // 4. RENDERERS
+    // ==========================================
+    function getFilteredFiles() {
+      const q = searchInput.value.toLowerCase().trim();
+      return allFiles.filter(f => {
+        const cat = getFileCategory(f);
+        const matchesCat = (currentCategory === 'all' || cat === currentCategory);
+        const matchesQuery = (!q || f.name.toLowerCase().includes(q));
+        return matchesCat && matchesQuery;
+      });
+    }
+
+    function updateCounts() {
+      const counts = { all: allFiles.length, image: 0, video: 0, audio: 0, document: 0, archive: 0 };
+      allFiles.forEach(f => {
+        const cat = getFileCategory(f);
+        if (counts[cat] !== undefined) counts[cat]++;
+      });
+      document.getElementById('badge-all').textContent = counts.all;
+      document.getElementById('badge-image').textContent = counts.image;
+      document.getElementById('badge-video').textContent = counts.video;
+      document.getElementById('badge-audio').textContent = counts.audio;
+      document.getElementById('badge-document').textContent = counts.document;
+      document.getElementById('badge-archive').textContent = counts.archive;
+    }
+
+    function updateBatchBar() {
+      if (selectedFilenames.size > 0) {
+        batchCounter.textContent = `${selectedFilenames.size} selected`;
+        batchBar.classList.add('show');
+      } else {
+        batchBar.classList.remove('show');
+      }
+    }
+
+    function renderFiles() {
+      const filtered = getFilteredFiles();
+
+      if (filtered.length === 0) {
+        filesContainer.innerHTML = `<div class="empty-state">${allFiles.length === 0 ? 'No shared files yet. Drop files above to transfer.' : 'No matching files found.'}</div>`;
+        updateBatchBar();
+        return;
+      }
+
+      if (currentViewMode === 'feed') {
+        renderFeedView(filtered);
+      } else if (currentViewMode === 'grid') {
+        renderGridView(filtered);
+      } else {
+        renderListView(filtered);
+      }
+
+      updateBatchBar();
+    }
+
+    // Mode 1: Feed View
+    function renderFeedView(files) {
+      filesContainer.className = 'files-container view-feed';
+      filesContainer.innerHTML = files.map(file => {
+        const isSelected = selectedFilenames.has(file.name);
+        const cat = getFileCategory(file);
+        const thumbUrl = getMediaUrl('/thumbnail', file.name);
+        const previewUrl = getMediaUrl('/preview', file.name);
+        const downloadUrl = getMediaUrl('/download', file.name);
+
+        let mediaHtml = '';
+        if (cat === 'image') {
+          mediaHtml = `
+            <div class="feed-media-wrap preview-trigger">
+              <img src="${thumbUrl}" onerror="this.onerror=null; this.src='${previewUrl}';" loading="lazy" alt="${file.name}">
+            </div>`;
+        } else if (cat === 'video') {
+          mediaHtml = `
+            <div class="feed-media-wrap">
+              <video src="${previewUrl}" controls preload="metadata"></video>
+            </div>`;
+        } else if (cat === 'audio') {
+          mediaHtml = `
+            <div style="padding: 18px 14px; background: var(--surface-elevated); display: flex; align-items: center; gap: 12px;">
+              <audio src="${previewUrl}" controls style="width: 100%;"></audio>
+            </div>`;
+        } else {
+          mediaHtml = `
+            <div class="feed-placeholder preview-trigger">
+              <div style="color: var(--emerald-light);">${getCategoryIconSvg(cat)}</div>
+              <span style="font-size: 0.82rem; font-family: var(--font-mono);">${file.name}</span>
+            </div>`;
+        }
+
+        return `
+          <div class="feed-card ${isSelected ? 'selected' : ''}" data-file="${encodeURIComponent(file.name)}">
+            ${mediaHtml}
+            <div class="feed-info-bar">
+              <div style="display:flex; align-items:center; gap:10px; overflow:hidden; flex:1;">
+                <div class="custom-check ${isSelected ? 'checked' : ''}">
+                  <svg class="icon icon-sm" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+                <div class="feed-meta preview-trigger">
+                  <span class="file-name" title="${file.name}">${file.name}</span>
+                  <div class="file-subtext">
+                    <span>${formatBytes(file.size)}</span>
+                    <span>•</span>
+                    <span>${formatDate(file.modified)}</span>
+                  </div>
+                </div>
+              </div>
+              <div class="card-actions">
+                <a class="btn btn-emerald btn-icon" href="${downloadUrl}" download="${file.name}" title="Download">
+                  <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                </a>
+                <button class="btn btn-danger btn-icon btn-delete-file" title="Delete">
+                  <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Mode 2: Grid View
+    function renderGridView(files) {
+      filesContainer.className = 'files-container view-grid';
+      filesContainer.innerHTML = files.map(file => {
+        const isSelected = selectedFilenames.has(file.name);
+        const cat = getFileCategory(file);
+        const thumbUrl = getMediaUrl('/thumbnail', file.name);
+        const previewUrl = getMediaUrl('/preview', file.name);
+        const downloadUrl = getMediaUrl('/download', file.name);
+
+        let thumbHtml = '';
+        if (cat === 'image') {
+          thumbHtml = `<img src="${thumbUrl}" onerror="this.onerror=null; this.src='${previewUrl}';" loading="lazy" alt="${file.name}">`;
+        } else {
+          thumbHtml = `<div style="color: var(--text-dim);">${getCategoryIconSvg(cat)}</div>`;
+        }
+
+        return `
+          <div class="grid-card ${isSelected ? 'selected' : ''}" data-file="${encodeURIComponent(file.name)}">
+            <div class="grid-thumb-wrap preview-trigger">
+              ${thumbHtml}
+            </div>
+            <div class="grid-info">
+              <span class="grid-name preview-trigger" title="${file.name}">${file.name}</span>
+              <span class="grid-meta">${formatBytes(file.size)}</span>
+              <div class="grid-action-row">
+                <div class="custom-check ${isSelected ? 'checked' : ''}">
+                  <svg class="icon icon-sm" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+                <div style="display:flex; gap:4px;">
+                  <a class="btn btn-icon" style="padding:4px; width:26px; height:26px;" href="${downloadUrl}" download="${file.name}">
+                    <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                  </a>
+                  <button class="btn btn-danger btn-icon btn-delete-file" style="padding:4px; width:26px; height:26px;">
+                    <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Mode 3: Dense List View
+    function renderListView(files) {
+      filesContainer.className = 'files-container view-list';
+      filesContainer.innerHTML = files.map(file => {
+        const isSelected = selectedFilenames.has(file.name);
+        const cat = getFileCategory(file);
+        const thumbUrl = getMediaUrl('/thumbnail', file.name);
+        const previewUrl = getMediaUrl('/preview', file.name);
+        const downloadUrl = getMediaUrl('/download', file.name);
+
+        let thumbHtml = '';
+        if (cat === 'image') {
+          thumbHtml = `<img src="${thumbUrl}" onerror="this.onerror=null; this.src='${previewUrl}';" loading="lazy" alt="">`;
+        } else {
+          thumbHtml = getCategoryIconSvg(cat);
+        }
+
+        return `
+          <div class="list-row ${isSelected ? 'selected' : ''}" data-file="${encodeURIComponent(file.name)}">
+            <div class="list-left">
+              <div class="custom-check ${isSelected ? 'checked' : ''}">
+                <svg class="icon icon-sm" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
+              <div class="list-thumb preview-trigger">${thumbHtml}</div>
+              <div class="preview-trigger" style="overflow:hidden; display:flex; flex-direction:column; gap:2px; flex:1; cursor:pointer;">
+                <span class="file-name" title="${file.name}">${file.name}</span>
+                <span class="file-subtext">${formatBytes(file.size)} • ${formatDate(file.modified)}</span>
+              </div>
+            </div>
+            <div class="card-actions">
+              <a class="btn btn-emerald btn-icon" href="${downloadUrl}" download="${file.name}" title="Download">
+                <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+              </a>
+              <button class="btn btn-danger btn-icon btn-delete-file" title="Delete">
+                <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // ==========================================
+    // 5. API & EVENT LOGIC
+    // ==========================================
+    async function fetchFiles() {
+      if (!isAuthenticated) return;
+      try {
+        const res = await fetch('/files', {
+          credentials: 'include',
+          headers: getHeaders(),
+        });
+        if (res.status === 401) {
+          showToast('Session expired. Please enter PIN.');
+          lockSession();
+          return;
+        }
+        allFiles = await res.json();
+        updateCounts();
+        renderFiles();
+        fetchSystemStats();
+      } catch (e) {
+        filesContainer.innerHTML = '<div class="empty-state">Unable to load files. Check Wi-Fi connection.</div>';
+      }
+    }
+
+    async function fetchSystemStats() {
+      if (!isAuthenticated) return;
+      try {
+        const res = await fetch('/system/stats', {
+          credentials: 'include',
+          headers: getHeaders(),
+        });
+        if (res.ok) {
+          const stats = await res.json();
+          storageFill.style.width = `${stats.percent_used}%`;
+          storageText.textContent = `${formatBytes(stats.free)} free (${stats.percent_used}% used)`;
+        }
+      } catch (e) {}
+    }
+
+    function setViewMode(mode) {
+      currentViewMode = mode;
+      localStorage.setItem('wifishare_view', mode);
+
+      viewFeedBtn.classList.toggle('active', mode === 'feed');
+      viewGridBtn.classList.toggle('active', mode === 'grid');
+      viewListBtn.classList.toggle('active', mode === 'list');
+
+      renderFiles();
+    }
+
+    function toggleSelect(filename) {
+      if (selectedFilenames.has(filename)) {
+        selectedFilenames.delete(filename);
+      } else {
+        selectedFilenames.add(filename);
+      }
+      renderFiles();
+    }
+
+    async function deleteSingleFile(filename) {
+      if (!confirm(`Delete "${filename}" from Ubuntu?`)) return;
+      try {
+        const res = await fetch(`/files/${encodeURIComponent(filename)}`, {
+          method: 'DELETE',
+          credentials: 'include',
+          headers: getHeaders(),
+        });
+        if (res.ok) {
+          showToast(`Deleted ${filename}`);
+          selectedFilenames.delete(filename);
+          fetchFiles();
+        } else {
+          showToast('Failed to delete file');
+        }
+      } catch (e) {
+        showToast('Error deleting file');
+      }
+    }
+
+    async function openLightbox(rawEncodedFilename) {
+      const filename = decodeURIComponent(rawEncodedFilename);
+      const file = allFiles.find(f => f.name === filename);
+      if (!file) return;
+
+      const cat = getFileCategory(file);
+      const previewUrl = getMediaUrl('/preview', file.name);
+      const downloadUrl = getMediaUrl('/download', file.name);
+
+      lightboxTitle.textContent = file.name;
+      lightboxMeta.textContent = `${formatBytes(file.size)} • ${file.mime_type || ''}`;
+      lightboxDownloadLink.href = downloadUrl;
+      lightboxDownloadLink.download = file.name;
+
+      lightboxBody.innerHTML = '<div style="color:var(--text-dim);">Loading preview...</div>';
+      lightboxModal.style.display = 'flex';
+
+      if (cat === 'image') {
+        lightboxBody.innerHTML = `<img src="${previewUrl}" alt="${file.name}">`;
+      } else if (cat === 'video') {
+        lightboxBody.innerHTML = `<video src="${previewUrl}" controls autoplay style="width:100%; max-height:80vh;"></video>`;
+      } else if (cat === 'audio') {
+        lightboxBody.innerHTML = `
+          <div style="padding: 32px; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 16px;">
+            <div style="color:var(--emerald-light);">${getCategoryIconSvg('audio')}</div>
+            <audio src="${previewUrl}" controls autoplay style="width: 80%;"></audio>
+          </div>`;
+      } else if (cat === 'document' && file.size < 500000) {
+        try {
+          const res = await fetch(previewUrl, { credentials: 'include', headers: getHeaders() });
+          const text = await res.text();
+          lightboxBody.innerHTML = `<pre class="lightbox-text">${text.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</pre>`;
+        } catch (e) {
+          lightboxBody.innerHTML = `<div class="feed-placeholder">${getCategoryIconSvg(cat)}<span>Text preview unavailable</span></div>`;
+        }
+      } else {
+        lightboxBody.innerHTML = `
+          <div class="feed-placeholder">
+            <div style="color:var(--emerald-light);">${getCategoryIconSvg(cat)}</div>
+            <span style="font-size:0.85rem; font-family:var(--font-mono);">${file.name}</span>
+            <span style="font-size:0.75rem; color:var(--text-dim);">Tap download below to save to device</span>
+          </div>`;
+      }
+    }
+
+    // ==========================================
+    // 6. EVENT DELEGATION FOR FILES
+    // ==========================================
+    filesContainer.addEventListener('click', (e) => {
+      const card = e.target.closest('[data-file]');
+      if (!card) return;
+      const filename = decodeURIComponent(card.dataset.file);
+
+      if (e.target.closest('.custom-check')) {
+        e.stopPropagation();
+        toggleSelect(filename);
+        return;
+      }
+
+      if (e.target.closest('.btn-delete-file')) {
+        e.stopPropagation();
+        deleteSingleFile(filename);
+        return;
+      }
+
+      if (e.target.closest('a[download]')) {
+        return;
+      }
+
+      if (e.target.closest('.preview-trigger')) {
+        e.stopPropagation();
+        openLightbox(encodeURIComponent(filename));
+        return;
+      }
+    });
+
+    // ==========================================
+    // 7. UPLOAD HANDLING (DETACHED QUEUE)
+    // ==========================================
+    dropzone.addEventListener('click', () => {
+      if (!isUploading) fileInput.click();
+    });
+    dropzone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropzone.classList.add('dragover');
+    });
+    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+    dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('dragover');
+      if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
+        const files = Array.from(e.dataTransfer.files);
+        uploadFiles(files);
+      }
+    });
+
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files && fileInput.files.length) {
+        const files = Array.from(fileInput.files);
+        fileInput.value = '';
+        uploadFiles(files);
+      }
+    });
+
+    async function uploadFiles(filesList) {
+      const queue = Array.from(filesList);
+      if (!queue.length) return;
+
+      if (isUploading) {
+        showToast('An upload is already in progress, please wait.');
+        return;
+      }
+
+      isUploading = true;
+      uploadProgressBox.style.display = 'block';
+
+      let successCount = 0;
+      for (let i = 0; i < queue.length; i++) {
+        const file = queue[i];
+        uploadFilename.textContent = `(${i + 1}/${queue.length}) ${file.name}`;
+        uploadPercentage.textContent = '0%';
+        uploadProgressFill.style.width = '0%';
+        uploadTransferred.textContent = `0 B / ${formatBytes(file.size)}`;
+        uploadSpeed.textContent = '0.0 MB/s';
+
+        const ok = await uploadSingleFile(file);
+        if (ok) {
+          successCount++;
+        }
+      }
+
+      isUploading = false;
+      showToast(`Finished: ${successCount} of ${queue.length} file(s) uploaded`);
+
+      setTimeout(() => {
+        uploadProgressBox.style.display = 'none';
+        fetchFiles();
+      }, 1200);
+    }
+
+    function uploadSingleFile(file) {
+      return new Promise((resolve) => {
+        const xhr = new XMLHttpRequest();
+        const formData = new FormData();
+        formData.append('files', file);
+
+        let startTime = Date.now();
+        let lastLoaded = 0;
+        let lastTime = startTime;
+
+        xhr.upload.addEventListener('progress', (e) => {
+          if (e.lengthComputable && e.total > 0) {
+            const percent = Math.min(100, Math.round((e.loaded / e.total) * 100));
+            uploadPercentage.textContent = `${percent}%`;
+            uploadProgressFill.style.width = `${percent}%`;
+            uploadTransferred.textContent = `${formatBytes(e.loaded)} / ${formatBytes(e.total)}`;
+
+            const now = Date.now();
+            const elapsed = (now - lastTime) / 1000;
+            if (elapsed >= 0.4) {
+              const speedBytes = (e.loaded - lastLoaded) / elapsed;
+              uploadSpeed.textContent = `${(speedBytes / (1024 * 1024)).toFixed(1)} MB/s`;
+              lastLoaded = e.loaded;
+              lastTime = now;
+            }
+          }
+        });
+
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            resolve(true);
+          } else {
+            showToast(`Upload failed (${xhr.status}): ${file.name}`);
+            resolve(false);
+          }
+        };
+
+        xhr.onerror = () => {
+          showToast(`Network error uploading ${file.name}`);
+          resolve(false);
+        };
+
+        xhr.ontimeout = () => {
+          showToast(`Timeout uploading ${file.name}`);
+          resolve(false);
+        };
+
+        xhr.open('POST', '/upload', true);
+        xhr.withCredentials = true;
+        if (authPin) xhr.setRequestHeader('X-Auth-Pin', authPin);
+        xhr.send(formData);
+      });
+    }
+
+    // ==========================================
+    // 8. BATCH & FILTER LISTENERS
+    // ==========================================
+    selectAllBtn.addEventListener('click', () => {
+      const filtered = getFilteredFiles();
+      if (selectedFilenames.size >= filtered.length && filtered.length > 0) {
+        selectedFilenames.clear();
+      } else {
+        filtered.forEach(f => selectedFilenames.add(f.name));
+      }
+      renderFiles();
+    });
+
+    batchClearBtn.addEventListener('click', () => {
+      selectedFilenames.clear();
+      renderFiles();
+    });
+
+    batchDeleteBtn.addEventListener('click', async () => {
+      const count = selectedFilenames.size;
+      if (!confirm(`Delete ${count} selected file${count === 1 ? '' : 's'} from Ubuntu?`)) return;
+
+      try {
+        const res = await fetch('/files/batch-delete', {
+          method: 'POST',
+          credentials: 'include',
+          headers: getHeaders({ 'Content-Type': 'application/json' }),
+          body: JSON.stringify({ filenames: Array.from(selectedFilenames) }),
+        });
+        if (res.ok) {
+          showToast(`Deleted ${count} files`);
+          selectedFilenames.clear();
+          fetchFiles();
+        } else {
+          showToast('Batch delete failed');
+        }
+      } catch (e) {
+        showToast('Error executing batch delete');
+      }
+    });
+
+    batchDownloadBtn.addEventListener('click', async () => {
+      const filenames = Array.from(selectedFilenames);
+      showToast('Preparing ZIP archive...');
+      try {
+        const res = await fetch('/download/zip', {
+          method: 'POST',
+          credentials: 'include',
+          headers: getHeaders({ 'Content-Type': 'application/json' }),
+          body: JSON.stringify({ filenames }),
+        });
+        if (res.ok) {
+          const blob = await res.blob();
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'wifishare_batch.zip';
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          window.URL.revokeObjectURL(url);
+          showToast('Downloaded ZIP archive');
+        } else {
+          showToast('Failed to create ZIP');
+        }
+      } catch (e) {
+        showToast('Error downloading ZIP');
+      }
+    });
+
+    filterChips.addEventListener('click', (e) => {
+      const chip = e.target.closest('.chip');
+      if (!chip) return;
+      document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      currentCategory = chip.dataset.cat;
+      renderFiles();
+    });
+
+    searchInput.addEventListener('input', renderFiles);
+
+    viewFeedBtn.addEventListener('click', () => setViewMode('feed'));
+    viewGridBtn.addEventListener('click', () => setViewMode('grid'));
+    viewListBtn.addEventListener('click', () => setViewMode('list'));
+
+    lightboxCloseBtn.addEventListener('click', () => {
+      lightboxModal.style.display = 'none';
+      lightboxBody.innerHTML = '';
+    });
+    lightboxModal.addEventListener('click', (e) => {
+      if (e.target === lightboxModal) {
+        lightboxModal.style.display = 'none';
+        lightboxBody.innerHTML = '';
+      }
+    });
+
+    // ==========================================
+    // 9. CLIPBOARD SYNC
+    // ==========================================
+    async function fetchClipboard() {
+      if (!isAuthenticated) return;
+      try {
+        const res = await fetch('/clipboard', {
+          credentials: 'include',
+          headers: getHeaders(),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.text) clipboardInput.value = data.text;
+        }
+      } catch (e) {}
+    }
+
+    sendClipboardBtn.addEventListener('click', async () => {
+      const text = clipboardInput.value;
+      if (!text.trim()) return;
+      try {
+        const res = await fetch('/clipboard', {
+          method: 'POST',
+          credentials: 'include',
+          headers: getHeaders({ 'Content-Type': 'application/json' }),
+          body: JSON.stringify({ text }),
+        });
+        if (res.ok) showToast('Injected into Ubuntu clipboard!');
+      } catch (e) {
+        showToast('Error syncing clipboard');
+      }
+    });
+
+    copyClipboardBtn.addEventListener('click', async () => {
+      const text = clipboardInput.value;
+      if (!text) {
+        showToast('Clipboard is empty');
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(text);
+        showToast('Copied to device clipboard');
+      } catch (e) {
+        showToast('Select text manually to copy');
+      }
+    });
+
+    // ==========================================
+    // 10. WEBSOCKET WITH PIN
+    // ==========================================
+    function connectWebSocket() {
+      if (!isAuthenticated) return;
+      const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const pinParam = authPin ? `?pin=${encodeURIComponent(authPin)}` : '';
+      const ws = new WebSocket(`${proto}//${window.location.host}/ws${pinParam}`);
+
+      ws.onopen = () => {
+        wsIndicator.classList.remove('offline');
+        wsStatusText.textContent = 'LAN SYNCED';
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.event === 'file_added' || data.event === 'file_deleted') {
+            fetchFiles();
+          } else if (data.event === 'clipboard_updated') {
+            clipboardInput.value = data.text;
+            showToast('New text copied from Ubuntu!');
+          }
+        } catch (e) {}
+      };
+
+      ws.onclose = () => {
+        wsIndicator.classList.add('offline');
+        wsStatusText.textContent = 'OFFLINE';
+        if (isAuthenticated) setTimeout(connectWebSocket, 3000);
+      };
+
+      ws.onerror = () => ws.close();
+    }
+
+    // ==========================================
+    // 11. THEME
+    // ==========================================
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    let currentTheme = localStorage.getItem('wifishare_theme') || (prefersDark ? 'dark' : 'light');
+
+    function applyTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      localStorage.setItem('wifishare_theme', theme);
+    }
+    applyTheme(currentTheme);
+
+    themeBtn.addEventListener('click', () => {
+      currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      applyTheme(currentTheme);
+    });
+
+    // ==========================================
+    // 12. INITIALIZATION
+    // ==========================================
+    // Clear any legacy saved PIN or auth cookies from past sessions
+    localStorage.removeItem('wifi_share_pin');
+    document.cookie = 'wifi_share_pin=; Max-Age=0; path=/';
+    gatePinInput.value = '';
+    gatePinInput.focus();
+  </script>
+</body>
+</html>
