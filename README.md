@@ -9,7 +9,7 @@ A high-performance, local-network file transfer and clipboard synchronization sy
 - **Local Network Transfers**: Fully offline and local. Zero cloud dependencies, zero external tracking, maximum Wi-Fi bandwidth utilization.
 - **Asynchronous Chunk Streaming**: Non-blocking 1 MB streaming chunks (`aiofiles`) maintain low memory consumption even during multi-gigabyte transfers.
 - **Resumable Downloads**: Full support for HTTP `Range` requests allows downloads to resume seamlessly if interrupted.
-- **Interactive Web Interface**: Obsidian and Dark Emerald theme with 100% vector SVG icons, zero gradients, and zero emojis.
+- **Interactive Web Interface**: Obsidian and Dark Emerald theme with 100% vector SVG icons.
   - Three customizable layout options: Single-column feed, multi-column grid, and dense list.
   - In-browser lightbox for instant preview of images, videos, audio, and documents.
   - Multi-file batch management: Select all, batch delete, and single-click ZIP archive downloads.
