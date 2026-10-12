@@ -1,6 +1,7 @@
 import io
 import mimetypes
 import os
+import re
 import shutil
 import tempfile
 import zipfile
@@ -29,8 +30,10 @@ THUMBNAILS_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def sanitize_filename(filename: str) -> str:
-    """Ensure safe filename to prevent directory traversal attacks."""
+    """Ensure safe filename to prevent directory traversal attacks and invalid OS characters."""
     clean_name = Path(filename).name
+    # Strip forbidden characters across Windows/Linux (e.g. < > : " / \ | ? *)
+    clean_name = re.sub(r'[<>:"/\\|?*\x00-\x1f]', '_', clean_name)
     if not clean_name or clean_name in (".", "..", ".thumbnails"):
         raise HTTPException(status_code=400, detail="Invalid filename")
     return clean_name

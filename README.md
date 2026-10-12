@@ -14,7 +14,7 @@ A high-performance, local-network file transfer and clipboard synchronization sy
   - In-browser lightbox for instant preview of images, videos, audio, and documents.
   - Multi-file batch management: Select all, batch delete, and single-click ZIP archive downloads.
   - System storage telemetry gauge and filter chips by media category.
-- **Bidirectional Clipboard Synchronization**: Real-time clipboard sharing supporting Linux (`xclip`, `wl-paste`), macOS (`pbcopy`, `pbpaste`), and Android.
+- **Bidirectional Clipboard Synchronization**: Real-time clipboard sharing supporting Linux (`xclip`, `wl-paste`), macOS (`pbcopy`, `pbpaste`), and Windows (`clip`, PowerShell).
 - **Access Control & Security**:
   - Mandatory session PIN gate (`2310`) protecting all API routes, downloads, previews, and WebSockets.
   - In-memory rate limiting and brute-force lockout (5 failed attempts trigger a 60-second cooldown).
@@ -50,30 +50,25 @@ A high-performance, local-network file transfer and clipboard synchronization sy
 
 ## Quick Start
 
-### 1. Server Installation (Ubuntu / Linux & macOS)
+### 1. Server Installation
 
-Clone the repository and run the automated installer:
-
+**Ubuntu / Debian / macOS:**
 ```bash
 cd server
 chmod +x install.sh start.sh
 ./install.sh
-```
-
-The script configures a dedicated Python virtual environment and installs all dependencies.
-
-### 2. Start the Server
-
-```bash
 ./start.sh
 ```
 
-Or manually:
-
-```bash
-source venv/bin/activate
-python3 main.py
+**Windows:**
+Double-click `install.bat`, then double-click `start.bat` (or via Command Prompt / PowerShell):
+```cmd
+cd server
+install.bat
+start.bat
 ```
+
+The installer configures a dedicated virtual environment and installs all dependencies.
 
 Upon launch, the server outputs:
 - The local network IP addresses.
@@ -142,6 +137,7 @@ Files transferred to the host are stored at:
 
 - **Linux**: `/home/<user>/wifi-share/shared/`
 - **macOS**: `/Users/<user>/wifi-share/shared/`
+- **Windows**: `C:\Users\<user>\wifi-share\shared\`
 
 Files placed directly into this folder on the host are immediately indexed and available for client download.
 

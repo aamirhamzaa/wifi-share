@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import subprocess
+import sys
 from typing import Optional
 from fastapi import APIRouter
 from pydantic import BaseModel
@@ -19,8 +20,22 @@ class ClipboardPayload(BaseModel):
 
 
 def read_system_clipboard() -> Optional[str]:
-    """Read current clipboard text from the host desktop environment (Linux or macOS)."""
-    # 1. Try pbpaste (macOS native)
+    """Read current clipboard text from the host desktop environment (Linux, macOS, or Windows)."""
+    # 1. Try Windows (PowerShell)
+    if sys.platform == "win32":
+        try:
+            proc = subprocess.run(
+                ["powershell", "-NoProfile", "-Command", "Get-Clipboard"],
+                capture_output=True,
+                text=True,
+                timeout=0.8,
+            )
+            if proc.returncode == 0:
+                return proc.stdout.rstrip("\r\n")
+        except Exception:
+            pass
+
+    # 2. Try pbpaste (macOS native)
     try:
         proc = subprocess.run(
             ["pbpaste"],
@@ -33,7 +48,7 @@ def read_system_clipboard() -> Optional[str]:
     except Exception:
         pass
 
-    # 2. Try xclip (Ubuntu X11)
+    # 3. Try xclip (Ubuntu X11)
     try:
         proc = subprocess.run(
             ["xclip", "-selection", "clipboard", "-o"],
@@ -46,7 +61,7 @@ def read_system_clipboard() -> Optional[str]:
     except Exception:
         pass
 
-    # 3. Try wl-paste (Ubuntu Wayland)
+    # 4. Try wl-paste (Ubuntu Wayland)
     try:
         proc = subprocess.run(
             ["wl-paste", "-n"],
@@ -63,8 +78,18 @@ def read_system_clipboard() -> Optional[str]:
 
 
 def write_system_clipboard(text: str) -> bool:
-    """Inject text into the desktop clipboard (Linux or macOS)."""
-    # 1. Try pbcopy (macOS native)
+    """Inject text into the desktop clipboard (Linux, macOS, or Windows)."""
+    # 1. Try Windows (clip command)
+    if sys.platform == "win32":
+        try:
+            proc = subprocess.Popen(["clip"], stdin=subprocess.PIPE, shell=True)
+            proc.communicate(input=text.encode("utf-16le"), timeout=0.8)
+            if proc.returncode == 0:
+                return True
+        except Exception:
+            pass
+
+    # 2. Try pbcopy (macOS native)
     try:
         proc = subprocess.Popen(["pbcopy"], stdin=subprocess.PIPE)
         proc.communicate(input=text.encode("utf-8"), timeout=0.8)
@@ -73,7 +98,7 @@ def write_system_clipboard(text: str) -> bool:
     except Exception:
         pass
 
-    # 2. Try xclip (Ubuntu X11)
+    # 3. Try xclip (Ubuntu X11)
     try:
         proc = subprocess.Popen(["xclip", "-selection", "clipboard"], stdin=subprocess.PIPE)
         proc.communicate(input=text.encode("utf-8"), timeout=0.8)
@@ -82,7 +107,7 @@ def write_system_clipboard(text: str) -> bool:
     except Exception:
         pass
 
-    # 3. Try wl-copy (Ubuntu Wayland)
+    # 4. Try wl-copy (Ubuntu Wayland)
     try:
         proc = subprocess.Popen(["wl-copy"], stdin=subprocess.PIPE)
         proc.communicate(input=text.encode("utf-8"), timeout=0.8)
